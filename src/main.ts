@@ -6,12 +6,12 @@ import { AppConfig } from "./types/config";
 import { assertDefined } from "./utils/objectUtil";
 
 async function bootstrap() {
-    const logger = new Logger('Main');
+    const logger = new Logger("Main");
 
     const app = await NestFactory.create(AppModule, {
         logger: new ConsoleLogger({
             json: process.env.ENV === "production",
-        })
+        }),
     });
 
     const configService = app.get(ConfigService);

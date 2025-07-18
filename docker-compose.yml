@@ -1,0 +1,71 @@
+name: ruff
+
+services:
+    # postgresql database
+    postgres:
+        image: postgres:17-alpine
+        container_name: ruff-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ruff
+            POSTGRES_USER: ruff_user
+            POSTGRES_PASSWORD: ruff_password
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./scripts/postgres/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+        networks:
+            - ruff-network
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ruff_user -d ruff"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    # ruff service
+    service:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: ${ENV:-production}
+        container_name: ruff-service
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        volumes:
+            - ${VOLUMES:-}
+        environment:
+            - PORT=3000
+            - APP_NAME=ruff-service
+            - ENV=${ENV:-production}
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+            - DATABASE_NAME=ruff
+            - DATABASE_USER=ruff_user
+            - DATABASE_PASSWORD=ruff_password
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - ruff-network
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "node",
+                    "-e",
+                    "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+volumes:
+    postgres_data:
+        driver: local
+
+networks:
+    ruff-network:
+        driver: bridge
