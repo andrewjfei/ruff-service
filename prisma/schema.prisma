@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+
+  // this is the current target for running prisma in docker container
+  binaryTargets = ["linux-musl-openssl-3.0.x"]
+  output        = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  firstName String @db.VarChar(255)
+  lastName  String @db.VarChar(255)
+  email     String @unique @db.VarChar(255)
+  homes     Home[]
+
+  @@map("user")
+}
+
+model Home {
+  id      Int    @id @default(autoincrement())
+  name    String @db.VarChar(255)
+  pets    Pet[]
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId Int
+
+  @@map("home")
+}
+
+model Pet {
+  id     Int      @id @default(autoincrement())
+  name   String   @db.VarChar(255)
+  type   String   @db.VarChar(255)
+  gender String   @db.VarChar(255)
+  dob    DateTime
+  breed  String   @db.VarChar(255)
+  home   Home     @relation(fields: [homeId], references: [id])
+  homeId Int
+
+  @@map("pet")
+}
