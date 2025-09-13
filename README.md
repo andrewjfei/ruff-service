@@ -112,6 +112,22 @@ docker compose up
 docker compose up -d
 ```
 
+## Migrations
+
+### Creating A Migration
+
+### Applying Migrations
+
+To apply all migrations, run `pnpm migrations:run`.
+
+## Database
+
+### Seeding The Database
+
+To seed the database, run `pnpm migrations:seed`.
+
+## Logging
+
 ## Testing
 
 ## Environment Variables

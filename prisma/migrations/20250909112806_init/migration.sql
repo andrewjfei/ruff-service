@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "user" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "firstName" VARCHAR(255) NOT NULL,
     "lastName" VARCHAR(255) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
@@ -10,22 +10,22 @@ CREATE TABLE "user" (
 
 -- CreateTable
 CREATE TABLE "home" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "ownerId" INTEGER NOT NULL,
+    "ownerId" TEXT NOT NULL,
 
     CONSTRAINT "home_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "pet" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "type" VARCHAR(255) NOT NULL,
     "gender" VARCHAR(255) NOT NULL,
     "dob" TIMESTAMP(3) NOT NULL,
     "breed" VARCHAR(255) NOT NULL,
-    "homeId" INTEGER NOT NULL,
+    "homeId" TEXT NOT NULL,
 
     CONSTRAINT "pet_pkey" PRIMARY KEY ("id")
 );

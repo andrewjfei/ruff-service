@@ -3,7 +3,9 @@ import { AppModule } from "./app.module";
 import { ConsoleLogger, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AppConfig } from "./types/config";
-import { assertDefined } from "./utils/objectUtil";
+import { assertDefined } from "./utils";
+import { ResponseInterceptor } from "./interceptors/response.interceptor";
+import { ExceptionInterceptor } from "./interceptors/exception.interceptor";
 
 async function bootstrap() {
     const logger = new Logger("Main");
@@ -13,6 +15,12 @@ async function bootstrap() {
             json: process.env.ENV === "production",
         }),
     });
+
+    // Format API response interceptor
+    app.useGlobalInterceptors(new ResponseInterceptor());
+
+    // Exception interceptor
+    app.useGlobalInterceptors(new ExceptionInterceptor());
 
     const configService = app.get(ConfigService);
     const appConfig: AppConfig = assertDefined(configService.get("app"));
