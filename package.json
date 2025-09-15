@@ -7,6 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "nest build",
+        "build:prod": "pnpm prisma:generate && pnpm migrations:deploy && pnpm build",
         "format": "prettier --write .",
         "start": "nest start --env-file .env",
         "start:dev": "nest start --watch --env-file .env",
@@ -25,6 +26,7 @@
         "migrations:generate": "prisma migrate dev --create-only --skip-seed",
         "migrations:reset": "prisma migrate reset",
         "migrations:run": "prisma migrate dev",
+        "migrations:deploy": "prisma migrate deploy",
         "migrations:status": "prisma migrate status",
         "create:module": "nest generate module",
         "create:controller": "nest generate controller",
