@@ -1,4 +1,4 @@
-import { Home, Pet, PrismaClient, User } from "prisma/generated/prisma";
+import { Home, Pet, PrismaClient, User } from "../../prisma/generated/prisma";
 import { faker } from "@faker-js/faker";
 import { DogBreed, PetGender, PetType } from "../constants";
 

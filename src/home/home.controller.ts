@@ -10,14 +10,14 @@ import {
     Post,
 } from "@nestjs/common";
 import { HomeService } from "./home.service";
-import { Home } from "prisma/generated/prisma";
+import { Home } from "../../prisma/generated/prisma";
 import { CreateHomeDto, UpdateHomeDto } from "./dto";
 
 @Controller("homes")
 export class HomeController {
     private readonly logger = new Logger(HomeController.name);
 
-    constructor(private readonly homeService: HomeService) {}
+    constructor(private readonly homeService: HomeService) { }
 
     @Post()
     @HttpCode(201)

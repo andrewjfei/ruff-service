@@ -1,4 +1,4 @@
-import { Prisma } from "prisma/generated/prisma";
+import { Prisma } from "../../../prisma/generated/prisma";
 import { UserService } from "../../user/user.service";
 import { User } from "../../types";
 import { BaseBuilder } from "./base.builder";

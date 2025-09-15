@@ -6,7 +6,7 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Prisma } from "prisma/generated/prisma";
+import { Prisma } from "../../prisma/generated/prisma";
 import { assertDefined } from "../utils";
 import { Home } from "../types";
 import { CreateHomeDto, UpdateHomeDto } from "./dto";
@@ -16,7 +16,7 @@ import { PrismaErrorCode } from "../constants";
 export class HomeService {
     private readonly logger = new Logger(HomeService.name);
 
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
     /**
      * Create a new home.
