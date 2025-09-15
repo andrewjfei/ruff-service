@@ -11,8 +11,9 @@ const config: Config = {
     testEnvironment: "node",
     testTimeout: 10000,
     setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
+    maxWorkers: 1,
     moduleNameMapper: {
-        "^src/(.*)$": "<rootDir>/$1",
+        "^prisma/(.*)$": "<rootDir>/../prisma/$1",
     },
 };
 

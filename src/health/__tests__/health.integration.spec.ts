@@ -3,7 +3,7 @@ import { INestApplication } from "@nestjs/common";
 import { agent as request } from "supertest";
 import { HealthModule } from "../health.module";
 import { Server } from "http";
-import { Health } from "src/types";
+import { Health } from "../../types";
 
 describe("Health Endpoint Intergration Tests", () => {
     let app: INestApplication;

@@ -5,11 +5,11 @@ import {
     Logger,
     NotFoundException,
 } from "@nestjs/common";
-import { Prisma, User } from "src/../prisma/generated/prisma";
-import { PrismaErrorCode } from "src/constants";
-import { PrismaService } from "src/prisma/prisma.service";
-import { HomeCreateData } from "src/types";
-import { assertDefined } from "src/utils";
+import { Prisma } from "prisma/generated/prisma";
+import { PrismaErrorCode } from "../constants";
+import { PrismaService } from "../prisma/prisma.service";
+import { User } from "../types";
+import { assertDefined } from "../utils";
 
 @Injectable()
 export class UserService {
@@ -112,21 +112,6 @@ export class UserService {
     async delete(id: string): Promise<User> {
         return this.prisma.user.delete({
             where: { id },
-        });
-    }
-
-    /**
-     * Add a home for a user by their id.
-     * @param id - The id of the user to add the home to.
-     * @param data - The data to add the home with.
-     * @returns The user with the added home.
-     */
-    async addHome(id: string, data: HomeCreateData): Promise<User> {
-        return await this.prisma.user.update({
-            where: { id },
-            data: {
-                homes: { create: data },
-            },
             include: {
                 homes: true,
             },

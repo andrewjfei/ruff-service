@@ -34,7 +34,7 @@ CREATE TABLE "pet" (
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- AddForeignKey
-ALTER TABLE "home" ADD CONSTRAINT "home_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "home" ADD CONSTRAINT "home_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "pet" ADD CONSTRAINT "pet_homeId_fkey" FOREIGN KEY ("homeId") REFERENCES "home"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "pet" ADD CONSTRAINT "pet_homeId_fkey" FOREIGN KEY ("homeId") REFERENCES "home"("id") ON DELETE CASCADE ON UPDATE CASCADE;

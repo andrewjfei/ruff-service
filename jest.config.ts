@@ -30,9 +30,13 @@ const config: Config = {
     // The timeout in milliseconds for a single test
     testTimeout: 5000,
 
+    // The maximum number of workers to use for parallel tests
+    // Since the integration tests rely on the same database container, we need to run them sequentially
+    maxWorkers: 1,
+
     // The mapping of module names when running your tests
     moduleNameMapper: {
-        "^src/(.*)$": "<rootDir>/$1",
+        "^prisma/(.*)$": "<rootDir>/../prisma/$1",
     },
 };
 

@@ -1,16 +1,18 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpException, INestApplication } from "@nestjs/common";
 import { UserModule } from "../user.module";
-import { PrismaModule } from "src/prisma/prisma.module";
-import { PrismaService } from "src/prisma/prisma.service";
-import { cleanDatabase } from "src/utils";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { PrismaService } from "../../prisma/prisma.service";
+import { cleanDatabase } from "../../utils";
 import { Response, agent as request } from "supertest";
-import { User } from "src/types";
+import { User } from "../../types";
 import { Server } from "http";
+import { UserBuilder } from "../../test/builders";
 
 describe("User Endpoint Integration Tests", () => {
     let app: INestApplication;
     let prismaService: PrismaService;
+    let userBuilder: UserBuilder;
 
     function getHttpServer(): Server {
         return app.getHttpServer() as Server;
@@ -25,6 +27,9 @@ describe("User Endpoint Integration Tests", () => {
         await app.init();
 
         prismaService = module.get<PrismaService>(PrismaService);
+
+        // Set up builders
+        userBuilder = new UserBuilder(app);
     });
 
     beforeEach(async () => {
@@ -60,44 +65,28 @@ describe("User Endpoint Integration Tests", () => {
         });
 
         it("should return 400 for duplicate email", async () => {
-            const userData = {
-                email: "john.doe@ruff.com",
-                firstName: "John",
-                lastName: "Doe",
-            };
-
-            await request(getHttpServer())
-                .post("/user")
-                .send(userData)
-                .expect(201);
+            const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
                 .post("/user")
-                .send(userData)
+                .send({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                })
                 .expect(400);
 
             const responseData = response.body as HttpException;
 
             expect(responseData.message).toContain(
-                `Email ${userData.email} is already in use`,
+                `Email ${user.email} is already in use`,
             );
         });
     });
 
     describe("GET /user/:id", () => {
         it("should retrieve a user by id", async () => {
-            const userData = {
-                email: "john.doe@ruff.com",
-                firstName: "John",
-                lastName: "Doe",
-            };
-
-            const createResponse: Response = await request(getHttpServer())
-                .post("/user")
-                .send(userData)
-                .expect(201);
-
-            const user = createResponse.body as User;
+            const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
                 .get(`/user/${user.id}`)
@@ -107,9 +96,9 @@ describe("User Endpoint Integration Tests", () => {
 
             expect(responseData).toBeDefined();
             expect(responseData.id).toBe(user.id);
-            expect(responseData.email).toBe(userData.email);
-            expect(responseData.firstName).toBe(userData.firstName);
-            expect(responseData.lastName).toBe(userData.lastName);
+            expect(responseData.email).toBe(user.email);
+            expect(responseData.firstName).toBe(user.firstName);
+            expect(responseData.lastName).toBe(user.lastName);
         });
 
         it("should return 404 for non-existent user", async () => {
@@ -129,26 +118,10 @@ describe("User Endpoint Integration Tests", () => {
 
     describe("GET /user", () => {
         it("should retrieve all users", async () => {
-            const usersData = [
-                {
-                    email: "john.doe@ruff.com",
-                    firstName: "John",
-                    lastName: "Doe",
-                },
-                {
-                    email: "jane.smith@ruff.com",
-                    firstName: "Jane",
-                    lastName: "Smith",
-                },
-            ];
-
-            // Create users
-            for (const userData of usersData) {
-                await request(getHttpServer())
-                    .post("/user")
-                    .send(userData)
-                    .expect(201);
-            }
+            const users: User[] = await Promise.all([
+                userBuilder.createUser(),
+                userBuilder.createUser(),
+            ]);
 
             const response: Response = await request(getHttpServer())
                 .get("/user")
@@ -157,9 +130,9 @@ describe("User Endpoint Integration Tests", () => {
             const responseData = response.body as User[];
 
             expect(responseData).toBeDefined();
-            expect(responseData.length).toBe(usersData.length);
-            expect(responseData.map((user: User) => user.email)).toEqual(
-                expect.arrayContaining(usersData.map((user) => user.email)),
+            expect(responseData.length).toBe(users.length);
+            expect(responseData.map((user: User) => user.id)).toEqual(
+                expect.arrayContaining(users.map((user) => user.id)),
             );
         });
 
@@ -176,18 +149,7 @@ describe("User Endpoint Integration Tests", () => {
 
     describe("PUT /user/:id", () => {
         it("should update a user successfully", async () => {
-            const userData = {
-                email: "john.doe@ruff.com",
-                firstName: "John",
-                lastName: "Doe",
-            };
-
-            const createResponse: Response = await request(getHttpServer())
-                .post("/user")
-                .send(userData)
-                .expect(201);
-
-            const user = createResponse.body as User;
+            const user: User = await userBuilder.createUser();
 
             const updateUserData = {
                 email: "jane.smith@ruff.com",
@@ -212,18 +174,7 @@ describe("User Endpoint Integration Tests", () => {
 
     describe("DELETE /user/:id", () => {
         it("should delete a user successfully", async () => {
-            const userData = {
-                email: "john.doe@ruff.com",
-                firstName: "John",
-                lastName: "Doe",
-            };
-
-            const createResponse: Response = await request(getHttpServer())
-                .post("/user")
-                .send(userData)
-                .expect(201);
-
-            const user = createResponse.body as User;
+            const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
                 .delete(`/user/${user.id}`)
@@ -243,41 +194,6 @@ describe("User Endpoint Integration Tests", () => {
             });
 
             expect(dbUser).toBeNull();
-        });
-    });
-
-    describe("POST /user/:id/home", () => {
-        it("should add a home for a user", async () => {
-            const userData = {
-                email: "john.doe@ruff.com",
-                firstName: "John",
-                lastName: "Doe",
-            };
-
-            const createResponse: Response = await request(getHttpServer())
-                .post("/user")
-                .send(userData)
-                .expect(201);
-
-            const user = createResponse.body as User;
-
-            const homeData = {
-                name: "Test Home",
-            };
-
-            const response: Response = await request(getHttpServer())
-                .post(`/user/${user.id}/home`)
-                .send(homeData)
-                .expect(201);
-
-            const responseData = response.body as User;
-
-            expect(responseData).toBeDefined();
-            expect(responseData.id).toBe(user.id);
-            expect(responseData.homes).toBeDefined();
-            expect(responseData.homes.length).toBe(1);
-            expect(responseData.homes[0].name).toBe(homeData.name);
-            expect(responseData.homes[0].ownerId).toBe(user.id);
         });
     });
 });

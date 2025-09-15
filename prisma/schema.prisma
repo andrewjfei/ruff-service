@@ -31,7 +31,7 @@ model Home {
     id      String @id @default(uuid())
     name    String @db.VarChar(255)
     pets    Pet[]
-    owner   User   @relation(fields: [ownerId], references: [id])
+    owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     ownerId String
 
     @@map("home")
@@ -44,7 +44,7 @@ model Pet {
     gender String   @db.VarChar(255)
     dob    DateTime
     breed  String   @db.VarChar(255)
-    home   Home     @relation(fields: [homeId], references: [id])
+    home   Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
     homeId String
 
     @@map("pet")

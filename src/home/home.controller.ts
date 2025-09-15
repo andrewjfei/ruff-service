@@ -4,15 +4,18 @@ import {
     Delete,
     Get,
     HttpCode,
+    Logger,
     Param,
     Post,
     Put,
 } from "@nestjs/common";
 import { HomeService } from "./home.service";
-import { Home, Prisma } from "src/../prisma/generated/prisma";
+import { Home, Prisma } from "prisma/generated/prisma";
 
 @Controller("home")
 export class HomeController {
+    private readonly logger = new Logger(HomeController.name);
+
     constructor(private readonly homeService: HomeService) {}
 
     @Post()
@@ -23,7 +26,7 @@ export class HomeController {
 
     @Get(":id")
     @HttpCode(200)
-    async getHome(@Param("id") id: string): Promise<Home | null> {
+    async getHome(@Param("id") id: string): Promise<Home> {
         return this.homeService.retrieve(id);
     }
 

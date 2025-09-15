@@ -1,4 +1,4 @@
-import { Home, PrismaClient, User } from "src/../prisma/generated/prisma";
+import { Home, PrismaClient, User } from "prisma/generated/prisma";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
