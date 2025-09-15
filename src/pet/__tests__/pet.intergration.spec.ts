@@ -10,6 +10,7 @@ import { Server } from "http";
 import { HomeBuilder, PetBuilder, UserBuilder } from "../../test/builders";
 import { UserModule } from "../../user/user.module";
 import { HomeModule } from "../../home/home.module";
+import { CatBreed, DogBreed, PetGender, PetType } from "../../constants";
 
 describe("Pet Endpoint Integration Tests", () => {
     let app: INestApplication;
@@ -47,7 +48,70 @@ describe("Pet Endpoint Integration Tests", () => {
         await app.close();
     });
 
-    describe("POST /pet", () => {
+    describe("GET /pets/types", () => {
+        it("should retrieve all pet types", async () => {
+            const response: Response = await request(getHttpServer())
+                .get("/pets/types")
+                .expect(200);
+
+            const responseData = response.body as string[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(Object.values(PetType).length);
+            expect(responseData).toEqual(
+                expect.arrayContaining(Object.values(PetType)),
+            );
+        });
+    });
+
+    describe("GET /pets/genders", () => {
+        it("should retrieve all pet genders", async () => {
+            const response: Response = await request(getHttpServer())
+                .get("/pets/genders")
+                .expect(200);
+
+            const responseData = response.body as string[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(Object.values(PetGender).length);
+            expect(responseData).toEqual(
+                expect.arrayContaining(Object.values(PetGender)),
+            );
+        });
+    });
+
+    describe("GET /pets/breeds", () => {
+        it("should retrieve all pet breeds", async () => {
+            const response: Response = await request(getHttpServer())
+                .get("/pets/breeds")
+                .expect(200);
+
+            const responseData = response.body as string[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(Object.values(DogBreed).length);
+            expect(responseData).toEqual(
+                expect.arrayContaining(Object.values(DogBreed)),
+            );
+        });
+
+        it("should retrieve all pet breeds for a given type", async () => {
+            const response: Response = await request(getHttpServer())
+                .get("/pets/breeds")
+                .query({ type: "cat" })
+                .expect(200);
+
+            const responseData = response.body as string[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(Object.values(CatBreed).length);
+            expect(responseData).toEqual(
+                expect.arrayContaining(Object.values(CatBreed)),
+            );
+        });
+    });
+
+    describe("POST /pets", () => {
         it("should create a pet successfully", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -64,7 +128,7 @@ describe("Pet Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .post("/pet")
+                .post("/pets")
                 .send(petData)
                 .expect(201);
 
@@ -81,7 +145,7 @@ describe("Pet Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /pet/:id", () => {
+    describe("GET /pets/:id", () => {
         it("should retrieve a pet by id", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -90,7 +154,7 @@ describe("Pet Endpoint Integration Tests", () => {
             const pet: Pet = await petBuilder.createPet({ homeId: home.id });
 
             const response: Response = await request(getHttpServer())
-                .get(`/pet/${pet.id}`)
+                .get(`/pets/${pet.id}`)
                 .expect(200);
 
             const responseData = response.body as Pet;
@@ -109,7 +173,7 @@ describe("Pet Endpoint Integration Tests", () => {
             const nonExistentId = "non-existent-id";
 
             const response: Response = await request(getHttpServer())
-                .get(`/pet/${nonExistentId}`)
+                .get(`/pets/${nonExistentId}`)
                 .expect(404);
 
             const responseData = response.body as HttpException;
@@ -120,7 +184,7 @@ describe("Pet Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /pet", () => {
+    describe("GET /pets", () => {
         it("should retrieve all pets", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -133,7 +197,7 @@ describe("Pet Endpoint Integration Tests", () => {
             ]);
 
             const response: Response = await request(getHttpServer())
-                .get("/pet")
+                .get("/pets")
                 .expect(200);
 
             const responseData = response.body as Pet[];
@@ -147,7 +211,7 @@ describe("Pet Endpoint Integration Tests", () => {
 
         it("should return empty array when no pets exist", async () => {
             const response: Response = await request(getHttpServer())
-                .get("/pet")
+                .get("/pets")
                 .expect(200);
 
             const responseData = response.body as Pet[];
@@ -156,7 +220,7 @@ describe("Pet Endpoint Integration Tests", () => {
         });
     });
 
-    describe("PUT /pet/:id", () => {
+    describe("PATCH /pets/:id", () => {
         it("should update a pet successfully", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -173,7 +237,7 @@ describe("Pet Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .put(`/pet/${pet.id}`)
+                .patch(`/pets/${pet.id}`)
                 .send(updatePetData)
                 .expect(200);
 
@@ -190,7 +254,7 @@ describe("Pet Endpoint Integration Tests", () => {
         });
     });
 
-    describe("DELETE /pet/:id", () => {
+    describe("DELETE /pets/:id", () => {
         it("should delete a pet successfully", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -199,7 +263,7 @@ describe("Pet Endpoint Integration Tests", () => {
             const pet: Pet = await petBuilder.createPet({ homeId: home.id });
 
             const response: Response = await request(getHttpServer())
-                .delete(`/pet/${pet.id}`)
+                .delete(`/pets/${pet.id}`)
                 .expect(200);
 
             const responseData = response.body as Pet;

@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ConsoleLogger, Logger } from "@nestjs/common";
+import { ConsoleLogger, Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AppConfig } from "./types/config";
 import { assertDefined } from "./utils";
@@ -15,6 +15,13 @@ async function bootstrap() {
             json: process.env.ENV === "production",
         }),
     });
+
+    app.useGlobalPipes(
+        new ValidationPipe({
+            // Transform the request body to the DTO class
+            transform: true,
+        }),
+    );
 
     // Format API response interceptor
     app.useGlobalInterceptors(new ResponseInterceptor());

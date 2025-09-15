@@ -10,6 +10,7 @@ import { PrismaErrorCode } from "../constants";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "../types";
 import { assertDefined } from "../utils";
+import { CreateUserDto, UpdateUserDto } from "./dto";
 
 @Injectable()
 export class UserService {
@@ -22,7 +23,7 @@ export class UserService {
      * @param data - The data to create the user with.
      * @returns The created user.
      */
-    async create(data: Prisma.UserCreateInput): Promise<User> {
+    async create(data: CreateUserDto): Promise<User> {
         try {
             return await this.prisma.user.create({
                 data,
@@ -94,7 +95,7 @@ export class UserService {
      * @param data - The data to update the user with.
      * @returns The updated user.
      */
-    async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
+    async update(id: string, data: UpdateUserDto): Promise<User> {
         return this.prisma.user.update({
             where: { id },
             data,

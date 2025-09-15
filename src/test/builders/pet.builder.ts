@@ -1,8 +1,9 @@
-import { Prisma } from "prisma/generated/prisma";
 import { Pet } from "../../types";
 import { BaseBuilder } from "./base.builder";
 import { faker } from "@faker-js/faker";
 import { PetService } from "../../pet/pet.service";
+import { CreatePetDto } from "../../pet/dto";
+import { CatBreed, DogBreed, PetGender, PetType } from "../../constants";
 
 /**
  * Home builder class for integration tests.
@@ -19,28 +20,30 @@ export class PetBuilder extends BaseBuilder {
      * @returns The created home.
      */
     async createPet(
-        overrides: Partial<Omit<Prisma.PetCreateInput, "home">> & {
+        overrides: Partial<Omit<CreatePetDto, "homeId">> & {
             homeId: string;
         },
     ): Promise<Pet> {
         const name = faker.person.firstName();
-        const type = "Dog";
-        const gender = faker.person.gender();
+        const type = faker.helpers.arrayElement(Object.values(PetType));
+        const gender = faker.helpers.arrayElement(Object.values(PetGender));
         const dob = faker.date.past();
-        const breed = faker.animal.dog();
-        const homeId = overrides.homeId;
+        const breed = () => {
+            switch (type) {
+                case PetType.CAT:
+                    return faker.helpers.arrayElement(Object.values(CatBreed));
+                default:
+                    return faker.helpers.arrayElement(Object.values(DogBreed));
+            }
+        };
 
-        const petData: Prisma.PetCreateInput = {
+        const petData: CreatePetDto = {
             name,
             type,
             gender,
             dob,
-            breed,
-            home: {
-                connect: {
-                    id: homeId,
-                },
-            },
+            breed: breed(),
+            ...overrides,
         };
 
         return await this.petService.create(petData);

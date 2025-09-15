@@ -6,48 +6,68 @@ import {
     HttpCode,
     Logger,
     Param,
+    Patch,
     Post,
-    Put,
+    Query,
 } from "@nestjs/common";
 import { PetService } from "./pet.service";
-import { Pet, Prisma } from "prisma/generated/prisma";
+import { Pet } from "../types";
+import { CreatePetDto, GetPetBreedsDto, UpdatePetDto } from "./dto";
 
-@Controller("pet")
+@Controller("pets")
 export class PetController {
     private readonly logger = new Logger(PetController.name);
 
     constructor(private readonly petService: PetService) {}
 
+    @Get("types")
+    @HttpCode(200)
+    getPetTypes(): string[] {
+        return this.petService.retrievePetTypes();
+    }
+
+    @Get("genders")
+    @HttpCode(200)
+    getPetGenders(): string[] {
+        return this.petService.retrievePetGenders();
+    }
+
+    @Get("breeds")
+    @HttpCode(200)
+    getPetBreeds(@Query() data: GetPetBreedsDto): string[] {
+        return this.petService.retrievePetBreeds(data.type);
+    }
+
     @Post()
     @HttpCode(201)
-    async createHome(@Body() data: Prisma.PetCreateInput): Promise<Pet> {
+    async createPet(@Body() data: CreatePetDto): Promise<Pet> {
         return this.petService.create(data);
     }
 
     @Get(":id")
     @HttpCode(200)
-    async getHome(@Param("id") id: string): Promise<Pet> {
+    async getPet(@Param("id") id: string): Promise<Pet> {
         return this.petService.retrieve(id);
     }
 
     @Get()
     @HttpCode(200)
-    async getHomes(): Promise<Pet[]> {
+    async getPets(): Promise<Pet[]> {
         return this.petService.retrieveAll();
     }
 
-    @Put(":id")
+    @Patch(":id")
     @HttpCode(200)
     async updatePet(
         @Param("id") id: string,
-        @Body() data: Prisma.PetUpdateInput,
+        @Body() data: UpdatePetDto,
     ): Promise<Pet> {
         return this.petService.update(id, data);
     }
 
     @Delete(":id")
     @HttpCode(200)
-    async deleteHome(@Param("id") id: string): Promise<Pet> {
+    async deletePet(@Param("id") id: string): Promise<Pet> {
         return this.petService.delete(id);
     }
 }

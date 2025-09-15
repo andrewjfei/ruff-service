@@ -6,14 +6,14 @@ import {
     HttpCode,
     Logger,
     Param,
+    Patch,
     Post,
-    Put,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { Prisma } from "prisma/generated/prisma";
 import { User } from "../types";
+import { CreateUserDto, UpdateUserDto } from "./dto";
 
-@Controller("user")
+@Controller("users")
 export class UserController {
     private readonly logger = new Logger(UserController.name);
 
@@ -21,7 +21,7 @@ export class UserController {
 
     @Post()
     @HttpCode(201)
-    async createUser(@Body() data: Prisma.UserCreateInput): Promise<User> {
+    async createUser(@Body() data: CreateUserDto): Promise<User> {
         return this.userService.create(data);
     }
 
@@ -37,11 +37,11 @@ export class UserController {
         return this.userService.retrieveAll();
     }
 
-    @Put(":id")
+    @Patch(":id")
     @HttpCode(200)
     async updateUser(
         @Param("id") id: string,
-        @Body() data: Prisma.UserUpdateInput,
+        @Body() data: UpdateUserDto,
     ): Promise<User> {
         return this.userService.update(id, data);
     }

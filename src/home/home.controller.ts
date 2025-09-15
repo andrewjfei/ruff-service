@@ -6,13 +6,14 @@ import {
     HttpCode,
     Logger,
     Param,
+    Patch,
     Post,
-    Put,
 } from "@nestjs/common";
 import { HomeService } from "./home.service";
-import { Home, Prisma } from "prisma/generated/prisma";
+import { Home } from "prisma/generated/prisma";
+import { CreateHomeDto, UpdateHomeDto } from "./dto";
 
-@Controller("home")
+@Controller("homes")
 export class HomeController {
     private readonly logger = new Logger(HomeController.name);
 
@@ -20,7 +21,7 @@ export class HomeController {
 
     @Post()
     @HttpCode(201)
-    async createHome(@Body() data: Prisma.HomeCreateInput): Promise<Home> {
+    async createHome(@Body() data: CreateHomeDto): Promise<Home> {
         return this.homeService.create(data);
     }
 
@@ -36,11 +37,11 @@ export class HomeController {
         return this.homeService.retrieveAll();
     }
 
-    @Put(":id")
+    @Patch(":id")
     @HttpCode(200)
     async updateHome(
         @Param("id") id: string,
-        @Body() data: Prisma.HomeUpdateInput,
+        @Body() data: UpdateHomeDto,
     ): Promise<Home> {
         return this.homeService.update(id, data);
     }

@@ -41,7 +41,7 @@ describe("User Endpoint Integration Tests", () => {
         await app.close();
     });
 
-    describe("POST /user", () => {
+    describe("POST /users", () => {
         it("should create a user successfully", async () => {
             const userData = {
                 email: "john.doe@ruff.com",
@@ -50,7 +50,7 @@ describe("User Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .post("/user")
+                .post("/users")
                 .send(userData)
                 .expect(201);
 
@@ -68,7 +68,7 @@ describe("User Endpoint Integration Tests", () => {
             const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
-                .post("/user")
+                .post("/users")
                 .send({
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -84,12 +84,12 @@ describe("User Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /user/:id", () => {
+    describe("GET /users/:id", () => {
         it("should retrieve a user by id", async () => {
             const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
-                .get(`/user/${user.id}`)
+                .get(`/users/${user.id}`)
                 .expect(200);
 
             const responseData = response.body as User;
@@ -105,7 +105,7 @@ describe("User Endpoint Integration Tests", () => {
             const nonExistentId = "non-existent-id";
 
             const response: Response = await request(getHttpServer())
-                .get(`/user/${nonExistentId}`)
+                .get(`/users/${nonExistentId}`)
                 .expect(404);
 
             const responseData = response.body as HttpException;
@@ -116,7 +116,7 @@ describe("User Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /user", () => {
+    describe("GET /users", () => {
         it("should retrieve all users", async () => {
             const users: User[] = await Promise.all([
                 userBuilder.createUser(),
@@ -124,7 +124,7 @@ describe("User Endpoint Integration Tests", () => {
             ]);
 
             const response: Response = await request(getHttpServer())
-                .get("/user")
+                .get("/users")
                 .expect(200);
 
             const responseData = response.body as User[];
@@ -138,7 +138,7 @@ describe("User Endpoint Integration Tests", () => {
 
         it("should return empty array when no users exist", async () => {
             const response: Response = await request(getHttpServer())
-                .get("/user")
+                .get("/users")
                 .expect(200);
 
             const responseData = response.body as User[];
@@ -147,7 +147,7 @@ describe("User Endpoint Integration Tests", () => {
         });
     });
 
-    describe("PUT /user/:id", () => {
+    describe("PATCH /users/:id", () => {
         it("should update a user successfully", async () => {
             const user: User = await userBuilder.createUser();
 
@@ -158,7 +158,7 @@ describe("User Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .put(`/user/${user.id}`)
+                .patch(`/users/${user.id}`)
                 .send(updateUserData)
                 .expect(200);
 
@@ -172,12 +172,12 @@ describe("User Endpoint Integration Tests", () => {
         });
     });
 
-    describe("DELETE /user/:id", () => {
+    describe("DELETE /users/:id", () => {
         it("should delete a user successfully", async () => {
             const user: User = await userBuilder.createUser();
 
             const response: Response = await request(getHttpServer())
-                .delete(`/user/${user.id}`)
+                .delete(`/users/${user.id}`)
                 .expect(200);
 
             const responseData = response.body as User;

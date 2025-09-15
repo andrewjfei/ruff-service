@@ -138,3 +138,28 @@ ENV="development"
 PORT=3000
 VOLUMES=".:/app:/app/node_modules"
 ```
+
+## Creating A New Model
+
+To add a new model to the application, follow the steps below:
+
+### 1. Database Schema Definition
+
+Define your new model in `prisma/schema.prisma` with appropriate fields, relationships, and constraints.
+
+### 2. Database Migration
+
+Generate and apply the migration to update your database schema:
+
+```bash
+pnpm prisma:generate -n <MIGRATION_NAME> && pnpm migrations:run
+```
+
+### 3. Application Layer Implementation
+
+- **New Domain**: Create a dedicated module with controller, service, and DTOs
+- **Existing Domain**: Add a new service to the appropriate existing module
+
+### 4. Testing Infrastructure
+
+Create a builder in `src/test/builders/` to facilitate model creation in your test suites, ensuring consistent and maintainable test data.

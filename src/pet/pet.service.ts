@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Injectable,
     InternalServerErrorException,
     Logger,
@@ -7,6 +8,14 @@ import {
 import { Pet, Prisma } from "prisma/generated/prisma";
 import { PrismaService } from "../prisma/prisma.service";
 import { assertDefined } from "../utils";
+import { CreatePetDto, UpdatePetDto } from "./dto";
+import {
+    CatBreed,
+    DogBreed,
+    PetGender,
+    PetType,
+    PrismaErrorCode,
+} from "../constants";
 
 @Injectable()
 export class PetService {
@@ -19,12 +28,23 @@ export class PetService {
      * @param data - The data to create the pet with.
      * @returns The created pet.
      */
-    async create(data: Prisma.PetCreateInput): Promise<Pet> {
+    async create(data: CreatePetDto): Promise<Pet> {
         try {
             return await this.prisma.pet.create({
                 data,
             });
         } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (
+                    error.code ===
+                    PrismaErrorCode.FOREIGN_KEY_CONSTRAINT_VIOLATION
+                ) {
+                    throw new BadRequestException(
+                        `Home id ${data.homeId} does not exist`,
+                    );
+                }
+            }
+
             if (error instanceof Error) {
                 throw new InternalServerErrorException(
                     `Failed to create pet: ${error.message}`,
@@ -68,7 +88,7 @@ export class PetService {
      * @param data - The data to update the pet with.
      * @returns The updated pet.
      */
-    async update(id: string, data: Prisma.PetUpdateInput): Promise<Pet> {
+    async update(id: string, data: UpdatePetDto): Promise<Pet> {
         return this.prisma.pet.update({
             where: { id },
             data,
@@ -84,5 +104,35 @@ export class PetService {
         return this.prisma.pet.delete({
             where: { id },
         });
+    }
+
+    /**
+     * Retrieve all pet types.
+     * @returns The retrieved pet types.
+     */
+    retrievePetTypes(): string[] {
+        return Object.values(PetType);
+    }
+
+    /**
+     * Retrieve all pet genders.
+     * @returns The retrieved pet genders.
+     */
+    retrievePetGenders(): string[] {
+        return Object.values(PetGender);
+    }
+
+    /**
+     * Retrieve all pet breeds given the type.
+     * @param type - The type of pet to retrieve breeds for.
+     * @returns The retrieved pet breeds.
+     */
+    retrievePetBreeds(type: string = PetType.DOG): string[] {
+        switch (type.toLocaleLowerCase()) {
+            case PetType.CAT.toLocaleLowerCase():
+                return Object.values(CatBreed);
+            default:
+                return Object.values(DogBreed);
+        }
     }
 }

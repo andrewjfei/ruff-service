@@ -1,3 +1,4 @@
 export const PrismaErrorCode = {
     UNIQUE_CONSTRAINT_VIOLATION: "P2002",
+    FOREIGN_KEY_CONSTRAINT_VIOLATION: "P2003",
 };

@@ -1,6 +1,7 @@
 // @ts-check
 import eslint from "@eslint/js";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import eslintPluginPrettier from "eslint-plugin-prettier";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import eslintPluginImport from "eslint-plugin-import";
@@ -28,9 +29,9 @@ export default tseslint.config(
     {
         plugins: {
             import: eslintPluginImport,
+            prettier: eslintPluginPrettier,
         },
         rules: {
-            indent: ["error", 4],
             quotes: ["error", "double", { avoidEscape: true }],
             "sort-imports": [
                 "error",
@@ -38,6 +39,12 @@ export default tseslint.config(
                     ignoreCase: false,
                     ignoreDeclarationSort: true,
                     ignoreMemberSort: false,
+                },
+            ],
+            "no-restricted-imports": [
+                "error",
+                {
+                    patterns: ["src/*"],
                 },
             ],
             "import/newline-after-import": ["error", { count: 1 }],

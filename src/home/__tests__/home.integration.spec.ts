@@ -44,7 +44,7 @@ describe("Home Endpoint Integration Tests", () => {
         await app.close();
     });
 
-    describe("POST /home", () => {
+    describe("POST /homes", () => {
         it("should create a home successfully", async () => {
             const user: User = await userBuilder.createUser();
 
@@ -54,7 +54,7 @@ describe("Home Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .post("/home")
+                .post("/homes")
                 .send(homeData)
                 .expect(201);
 
@@ -68,7 +68,7 @@ describe("Home Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /home/:id", () => {
+    describe("GET /homes/:id", () => {
         it("should retrieve a home by id", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -76,7 +76,7 @@ describe("Home Endpoint Integration Tests", () => {
             });
 
             const response: Response = await request(getHttpServer())
-                .get(`/home/${home.id}`)
+                .get(`/homes/${home.id}`)
                 .expect(200);
 
             const responseData = response.body as Home;
@@ -92,7 +92,7 @@ describe("Home Endpoint Integration Tests", () => {
             const nonExistentId = "non-existent-id";
 
             const response: Response = await request(getHttpServer())
-                .get(`/home/${nonExistentId}`)
+                .get(`/homes/${nonExistentId}`)
                 .expect(404);
 
             const responseData = response.body as HttpException;
@@ -103,7 +103,7 @@ describe("Home Endpoint Integration Tests", () => {
         });
     });
 
-    describe("GET /home", () => {
+    describe("GET /homes", () => {
         it("should retrieve all homes", async () => {
             const user: User = await userBuilder.createUser();
 
@@ -113,7 +113,7 @@ describe("Home Endpoint Integration Tests", () => {
             ]);
 
             const response: Response = await request(getHttpServer())
-                .get("/home")
+                .get("/homes")
                 .expect(200);
 
             const responseData = response.body as Home[];
@@ -127,7 +127,7 @@ describe("Home Endpoint Integration Tests", () => {
 
         it("should return empty array when no homes exist", async () => {
             const response: Response = await request(getHttpServer())
-                .get("/home")
+                .get("/homes")
                 .expect(200);
 
             const responseData = response.body as Home[];
@@ -136,7 +136,7 @@ describe("Home Endpoint Integration Tests", () => {
         });
     });
 
-    describe("PUT /home/:id", () => {
+    describe("PATCH /homes/:id", () => {
         it("should update a home successfully", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -149,7 +149,7 @@ describe("Home Endpoint Integration Tests", () => {
             };
 
             const response: Response = await request(getHttpServer())
-                .put(`/home/${home.id}`)
+                .patch(`/homes/${home.id}`)
                 .send(updateHomeData)
                 .expect(200);
 
@@ -163,7 +163,7 @@ describe("Home Endpoint Integration Tests", () => {
         });
     });
 
-    describe("DELETE /home/:id", () => {
+    describe("DELETE /homes/:id", () => {
         it("should delete a home successfully", async () => {
             const user: User = await userBuilder.createUser();
             const home: Home = await homeBuilder.createHome({
@@ -171,7 +171,7 @@ describe("Home Endpoint Integration Tests", () => {
             });
 
             const response: Response = await request(getHttpServer())
-                .delete(`/home/${home.id}`)
+                .delete(`/homes/${home.id}`)
                 .expect(200);
 
             const responseData = response.body as Home;

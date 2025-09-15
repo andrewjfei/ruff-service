@@ -1,8 +1,8 @@
-import { Prisma } from "prisma/generated/prisma";
 import { HomeService } from "../../home/home.service";
 import { Home } from "../../types";
 import { BaseBuilder } from "./base.builder";
 import { faker } from "@faker-js/faker";
+import { CreateHomeDto } from "../../home/dto";
 
 /**
  * Home builder class for integration tests.
@@ -19,20 +19,15 @@ export class HomeBuilder extends BaseBuilder {
      * @returns The created home.
      */
     async createHome(
-        overrides: Partial<Omit<Prisma.HomeCreateInput, "owner">> & {
+        overrides: Partial<Omit<CreateHomeDto, "ownerId">> & {
             ownerId: string;
         },
     ): Promise<Home> {
         const name = faker.location.street();
-        const ownerId = overrides.ownerId;
 
-        const homeData: Prisma.HomeCreateInput = {
+        const homeData: CreateHomeDto = {
             name,
-            owner: {
-                connect: {
-                    id: ownerId,
-                },
-            },
+            ...overrides,
         };
 
         return await this.homeService.create(homeData);

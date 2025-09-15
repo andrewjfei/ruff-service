@@ -1,4 +1,5 @@
 import {
+    BadRequestException,
     Injectable,
     InternalServerErrorException,
     Logger,
@@ -8,6 +9,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "prisma/generated/prisma";
 import { assertDefined } from "../utils";
 import { Home } from "../types";
+import { CreateHomeDto, UpdateHomeDto } from "./dto";
+import { PrismaErrorCode } from "../constants";
 
 @Injectable()
 export class HomeService {
@@ -20,7 +23,7 @@ export class HomeService {
      * @param data - The data to create the home with.
      * @returns The created home.
      */
-    async create(data: Prisma.HomeCreateInput): Promise<Home> {
+    async create(data: CreateHomeDto): Promise<Home> {
         try {
             return await this.prisma.home.create({
                 data,
@@ -29,6 +32,17 @@ export class HomeService {
                 },
             });
         } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (
+                    error.code ===
+                    PrismaErrorCode.FOREIGN_KEY_CONSTRAINT_VIOLATION
+                ) {
+                    throw new BadRequestException(
+                        `Owner id ${data.ownerId} does not exist`,
+                    );
+                }
+            }
+
             if (error instanceof Error) {
                 throw new InternalServerErrorException(
                     `Failed to create home: ${error.message}`,
@@ -79,7 +93,7 @@ export class HomeService {
      * @param data - The data to update the home with.
      * @returns The updated home.
      */
-    async update(id: string, data: Prisma.HomeUpdateInput): Promise<Home> {
+    async update(id: string, data: UpdateHomeDto): Promise<Home> {
         return this.prisma.home.update({
             where: { id },
             data,
