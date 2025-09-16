@@ -89,6 +89,7 @@ export class HomeService {
 
     /**
      * Retrieve all homes.
+     * @param data - Filtering options.
      * @returns The retrieved homes.
      */
     async retrieveAll(data: GetHomesDto): Promise<Home[]> {

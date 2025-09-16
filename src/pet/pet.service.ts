@@ -8,7 +8,7 @@ import {
 import { Pet, Prisma } from "../../prisma/generated/prisma";
 import { PrismaService } from "../prisma/prisma.service";
 import { assertDefined } from "../utils";
-import { CreatePetDto, UpdatePetDto } from "./dto";
+import { CreatePetDto, GetPetsDto, UpdatePetDto } from "./dto";
 import {
     CatBreed,
     DogBreed,
@@ -76,10 +76,23 @@ export class PetService {
 
     /**
      * Retrieve all pets.
+     * @param data - Filtering options.
      * @returns The retrieved pets.
      */
-    async retrieveAll(): Promise<Pet[]> {
-        return this.prisma.pet.findMany();
+    async retrieveAll(data: GetPetsDto): Promise<Pet[]> {
+        const where = data.userId
+            ? {
+                  home: {
+                      users: {
+                          some: {
+                              userId: data.userId,
+                          },
+                      },
+                  },
+              }
+            : {};
+
+        return this.prisma.pet.findMany({ where });
     }
 
     /**

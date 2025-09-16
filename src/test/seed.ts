@@ -4,15 +4,15 @@ import { DogBreed, PetGender, PetType } from "../constants";
 
 const prisma = new PrismaClient();
 
-async function clearData() {
+const clearData = async (): Promise<void> => {
     await prisma.pet.deleteMany();
     await prisma.home.deleteMany();
     await prisma.user.deleteMany();
 
     console.log("All data cleared successfully");
-}
+};
 
-async function createUsers() {
+const createUsers = async (): Promise<User[]> => {
     const users: User[] = await Promise.all(
         Array.from({ length: 3 }).map(async () => {
             const firstName = faker.person.firstName();
@@ -31,27 +31,38 @@ async function createUsers() {
 
     console.log("Users created successfully");
     return users;
-}
+};
 
-async function createHomes(users: User[]) {
+const createHomes = async (users: User[]): Promise<Home[]> => {
     const homes: Home[] = await Promise.all(
         users.map(async (user: User) => {
             const name = faker.location.street();
 
-            return prisma.home.create({
-                data: {
-                    name,
-                    ownerId: user.id,
-                },
+            return await prisma.$transaction(async (tx) => {
+                const home = await tx.home.create({
+                    data: {
+                        name,
+                        ownerId: user.id,
+                    },
+                });
+
+                await tx.userHome.create({
+                    data: {
+                        userId: user.id,
+                        homeId: home.id,
+                    },
+                });
+
+                return home;
             });
         }),
     );
 
     console.log("Homes created successfully");
     return homes;
-}
+};
 
-async function createPets(homes: Home[]) {
+const createPets = async (homes: Home[]): Promise<Pet[]> => {
     const pets: Pet[] = await Promise.all(
         homes.map(async (home: Home) => {
             const name = faker.person.firstName();
@@ -75,7 +86,17 @@ async function createPets(homes: Home[]) {
 
     console.log("Pets created successfully");
     return pets;
-}
+};
+
+const addUserToHomes = async (user: User, homes: Home[]): Promise<void> => {
+    await Promise.all(
+        homes.map(async (home: Home) => {
+            await prisma.userHome.create({
+                data: { userId: user.id, homeId: home.id },
+            });
+        }),
+    );
+};
 
 async function main() {
     // Delete all table records
@@ -85,6 +106,9 @@ async function main() {
     const users: User[] = await createUsers();
     const homes: Home[] = await createHomes(users);
     await createPets(homes);
+
+    // Add first user to all other homes
+    await addUserToHomes(users[0], homes.slice(1));
 }
 
 main()

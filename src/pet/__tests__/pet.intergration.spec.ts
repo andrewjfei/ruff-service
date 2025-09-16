@@ -11,10 +11,12 @@ import { HomeBuilder, PetBuilder, UserBuilder } from "../../test/builders";
 import { UserModule } from "../../user/user.module";
 import { HomeModule } from "../../home/home.module";
 import { CatBreed, DogBreed, PetGender, PetType } from "../../constants";
+import { HomeService } from "../../home/home.service";
 
 describe("Pet Endpoint Integration Tests", () => {
     let app: INestApplication;
     let prismaService: PrismaService;
+    let homeService: HomeService;
     let userBuilder: UserBuilder;
     let homeBuilder: HomeBuilder;
     let petBuilder: PetBuilder;
@@ -32,6 +34,7 @@ describe("Pet Endpoint Integration Tests", () => {
         await app.init();
 
         prismaService = module.get<PrismaService>(PrismaService);
+        homeService = module.get<HomeService>(HomeService);
 
         // Set up builders
         userBuilder = new UserBuilder(app);
@@ -198,6 +201,35 @@ describe("Pet Endpoint Integration Tests", () => {
 
             const response: Response = await request(getHttpServer())
                 .get("/pets")
+                .expect(200);
+
+            const responseData = response.body as Pet[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(pets.length);
+            expect(responseData.map((pet: Pet) => pet.id)).toEqual(
+                expect.arrayContaining(pets.map((pet) => pet.id)),
+            );
+        });
+
+        it("should retrieve all pets for a user", async () => {
+            const user: User = await userBuilder.createUser();
+            const otherUser: User = await userBuilder.createUser();
+            const ownedHome: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+            const nonOwnedHome: Home = await homeBuilder.createHome({
+                ownerId: otherUser.id,
+            });
+            const pets: Pet[] = await Promise.all([
+                petBuilder.createPet({ homeId: ownedHome.id }),
+                petBuilder.createPet({ homeId: nonOwnedHome.id }),
+            ]);
+
+            await homeService.addUserToHome(nonOwnedHome.id, user.id);
+
+            const response: Response = await request(getHttpServer())
+                .get(`/pets?userId=${user.id}`)
                 .expect(200);
 
             const responseData = response.body as Pet[];

@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { PetService } from "./pet.service";
 import { Pet } from "../types";
-import { CreatePetDto, GetPetBreedsDto, UpdatePetDto } from "./dto";
+import { CreatePetDto, GetPetBreedsDto, GetPetsDto, UpdatePetDto } from "./dto";
 
 @Controller("pets")
 export class PetController {
@@ -52,8 +52,8 @@ export class PetController {
 
     @Get()
     @HttpCode(200)
-    async getPets(): Promise<Pet[]> {
-        return this.petService.retrieveAll();
+    async getPets(@Query() query: GetPetsDto): Promise<Pet[]> {
+        return this.petService.retrieveAll(query);
     }
 
     @Patch(":id")

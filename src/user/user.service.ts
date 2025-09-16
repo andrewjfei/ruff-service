@@ -28,7 +28,12 @@ export class UserService {
             return await this.prisma.user.create({
                 data,
                 include: {
-                    homes: true,
+                    ownedHomes: true,
+                    homes: {
+                        include: {
+                            home: true,
+                        },
+                    },
                 },
             });
         } catch (error) {
@@ -63,7 +68,12 @@ export class UserService {
                 await this.prisma.user.findUnique({
                     where: { id },
                     include: {
-                        homes: true,
+                        ownedHomes: true,
+                        homes: {
+                            include: {
+                                home: true,
+                            },
+                        },
                     },
                 }),
             );
@@ -84,7 +94,12 @@ export class UserService {
                 firstName: "asc",
             },
             include: {
-                homes: true,
+                ownedHomes: true,
+                homes: {
+                    include: {
+                        home: true,
+                    },
+                },
             },
         });
     }
@@ -100,7 +115,12 @@ export class UserService {
             where: { id },
             data,
             include: {
-                homes: true,
+                ownedHomes: true,
+                homes: {
+                    include: {
+                        home: true,
+                    },
+                },
             },
         });
     }
@@ -114,7 +134,12 @@ export class UserService {
         return this.prisma.user.delete({
             where: { id },
             include: {
-                homes: true,
+                ownedHomes: true,
+                homes: {
+                    include: {
+                        home: true,
+                    },
+                },
             },
         });
     }
