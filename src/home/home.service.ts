@@ -9,7 +9,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { Prisma } from "../../prisma/generated/prisma";
 import { assertDefined } from "../utils";
 import { Home } from "../types";
-import { CreateHomeDto, UpdateHomeDto } from "./dto";
+import { CreateHomeDto, GetHomesDto, UpdateHomeDto } from "./dto";
 import { PrismaErrorCode } from "../constants";
 
 @Injectable()
@@ -25,11 +25,23 @@ export class HomeService {
      */
     async create(data: CreateHomeDto): Promise<Home> {
         try {
-            return await this.prisma.home.create({
-                data,
-                include: {
-                    pets: true,
-                },
+            return await this.prisma.$transaction(async (tx) => {
+                const home = await tx.home.create({
+                    data,
+                    include: {
+                        pets: true,
+                    },
+                });
+
+                // Also create the UserHome join table entry
+                await tx.userHome.create({
+                    data: {
+                        userId: data.ownerId,
+                        homeId: home.id,
+                    },
+                });
+
+                return home;
             });
         } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -79,12 +91,65 @@ export class HomeService {
      * Retrieve all homes.
      * @returns The retrieved homes.
      */
-    async retrieveAll(): Promise<Home[]> {
+    async retrieveAll(data: GetHomesDto): Promise<Home[]> {
+        const where = data.userId
+            ? {
+                  users: {
+                      some: {
+                          userId: data.userId,
+                      },
+                  },
+              }
+            : {};
+
         return this.prisma.home.findMany({
+            where,
             include: {
                 pets: true,
             },
         });
+    }
+
+    /**
+     * Add a user to a home.
+     * @param homeId - The id of the home.
+     * @param userId - The id of the user to add.
+     */
+    async addUserToHome(homeId: string, userId: string): Promise<void> {
+        try {
+            await this.prisma.userHome.create({
+                data: {
+                    userId,
+                    homeId,
+                },
+            });
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (
+                    error.code === PrismaErrorCode.UNIQUE_CONSTRAINT_VIOLATION
+                ) {
+                    throw new BadRequestException(
+                        `User ${userId} is already a member of home ${homeId}`,
+                    );
+                }
+                if (
+                    error.code ===
+                    PrismaErrorCode.FOREIGN_KEY_CONSTRAINT_VIOLATION
+                ) {
+                    throw new BadRequestException(
+                        `User ${userId} or home ${homeId} does not exist`,
+                    );
+                }
+            }
+
+            if (error instanceof Error) {
+                throw new InternalServerErrorException(
+                    `Failed to add user to home: ${error.message}`,
+                );
+            }
+
+            throw new InternalServerErrorException(error);
+        }
     }
 
     /**

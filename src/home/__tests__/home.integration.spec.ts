@@ -9,10 +9,13 @@ import { Home, User } from "../../types";
 import { Server } from "http";
 import { HomeBuilder, UserBuilder } from "../../test/builders";
 import { UserModule } from "../../user/user.module";
+import { assertDefined } from "../../utils";
+import { HomeService } from "../home.service";
 
 describe("Home Endpoint Integration Tests", () => {
     let app: INestApplication;
     let prismaService: PrismaService;
+    let homeService: HomeService;
     let userBuilder: UserBuilder;
     let homeBuilder: HomeBuilder;
 
@@ -29,6 +32,7 @@ describe("Home Endpoint Integration Tests", () => {
         await app.init();
 
         prismaService = module.get<PrismaService>(PrismaService);
+        homeService = module.get<HomeService>(HomeService);
 
         // Set up builders
         userBuilder = new UserBuilder(app);
@@ -65,6 +69,15 @@ describe("Home Endpoint Integration Tests", () => {
             expect(responseData.name).toBe(homeData.name);
             expect(responseData.ownerId).toBe(user.id);
             expect(responseData.pets).toBeDefined();
+
+            // Verify join record is created
+            const dbHome = await prismaService.userHome.findUnique({
+                where: {
+                    userId_homeId: { userId: user.id, homeId: responseData.id },
+                },
+            });
+
+            expect(dbHome).toBeDefined();
         });
     });
 
@@ -114,6 +127,32 @@ describe("Home Endpoint Integration Tests", () => {
 
             const response: Response = await request(getHttpServer())
                 .get("/homes")
+                .expect(200);
+
+            const responseData = response.body as Home[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(homes.length);
+            expect(responseData.map((home: Home) => home.id)).toEqual(
+                expect.arrayContaining(homes.map((home) => home.id)),
+            );
+        });
+
+        it("should retrieve all homes for a user", async () => {
+            const user: User = await userBuilder.createUser();
+            const otherUser: User = await userBuilder.createUser();
+            const ownedHome: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+            const nonOwnedHome: Home = await homeBuilder.createHome({
+                ownerId: otherUser.id,
+            });
+            const homes: Home[] = [ownedHome, nonOwnedHome];
+
+            await homeService.addUserToHome(nonOwnedHome.id, user.id);
+
+            const response: Response = await request(getHttpServer())
+                .get(`/homes?userId=${user.id}`)
                 .expect(200);
 
             const responseData = response.body as Home[];
@@ -188,6 +227,110 @@ describe("Home Endpoint Integration Tests", () => {
             });
 
             expect(dbHome).toBeNull();
+        });
+    });
+
+    describe("POST /homes/:id/users", () => {
+        it("should add a user to a home successfully", async () => {
+            const user: User = await userBuilder.createUser();
+            const otherUser: User = await userBuilder.createUser();
+            const users: User[] = [user, otherUser];
+            const home: Home = await homeBuilder.createHome({
+                ownerId: otherUser.id,
+            });
+
+            // Verify home currently only has the owner as a user
+            const dbHomeBeforeAddingUser = assertDefined(
+                await prismaService.home.findUnique({
+                    where: {
+                        id: home.id,
+                    },
+                    include: {
+                        users: true,
+                    },
+                }),
+            );
+
+            expect(dbHomeBeforeAddingUser).toBeDefined();
+            expect(dbHomeBeforeAddingUser.users.length).toBe(1);
+            expect(dbHomeBeforeAddingUser.users[0].userId).toBe(otherUser.id);
+
+            const response: Response = await request(getHttpServer())
+                .post(`/homes/${home.id}/users`)
+                .send({ userId: user.id })
+                .expect(201);
+
+            expect(response.body).toBeDefined();
+            expect(response.body).toEqual({});
+
+            // Verify user is successfully added to home
+            const dbHome = assertDefined(
+                await prismaService.home.findUnique({
+                    where: { id: home.id },
+                    include: {
+                        users: true,
+                    },
+                }),
+            );
+
+            expect(dbHome).toBeDefined();
+            expect(dbHome.users.length).toBe(2);
+            expect(dbHome.users.map((user) => user.userId)).toEqual(
+                expect.arrayContaining(users.map((user) => user.id)),
+            );
+        });
+
+        it("should return 400 for adding a user that is already a member of the home", async () => {
+            const user: User = await userBuilder.createUser();
+            const home: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+
+            const response: Response = await request(getHttpServer())
+                .post(`/homes/${home.id}/users`)
+                .send({ userId: user.id })
+                .expect(400);
+
+            const responseData = response.body as HttpException;
+
+            expect(responseData.message).toContain(
+                `User ${user.id} is already a member of home ${home.id}`,
+            );
+        });
+
+        it("should return 400 for non-existent user", async () => {
+            const nonExistentUserId = "non-existent-user-id";
+            const user: User = await userBuilder.createUser();
+            const home: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+
+            const response: Response = await request(getHttpServer())
+                .post(`/homes/${home.id}/users`)
+                .send({ userId: nonExistentUserId })
+                .expect(400);
+
+            const responseData = response.body as HttpException;
+
+            expect(responseData.message).toContain(
+                `User ${nonExistentUserId} or home ${home.id} does not exist`,
+            );
+        });
+
+        it("should return 400 for non-existent home", async () => {
+            const nonExistentHomeId = "non-existent-home-id";
+            const user: User = await userBuilder.createUser();
+
+            const response: Response = await request(getHttpServer())
+                .post(`/homes/${nonExistentHomeId}/users`)
+                .send({ userId: user.id })
+                .expect(400);
+
+            const responseData = response.body as HttpException;
+
+            expect(responseData.message).toContain(
+                `User ${user.id} or home ${nonExistentHomeId} does not exist`,
+            );
         });
     });
 });

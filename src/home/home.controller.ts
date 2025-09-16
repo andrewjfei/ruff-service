@@ -8,16 +8,31 @@ import {
     Param,
     Patch,
     Post,
+    Query,
 } from "@nestjs/common";
 import { HomeService } from "./home.service";
 import { Home } from "../../prisma/generated/prisma";
-import { CreateHomeDto, UpdateHomeDto } from "./dto";
+import {
+    AddUserToHomeDto,
+    CreateHomeDto,
+    GetHomesDto,
+    UpdateHomeDto,
+} from "./dto";
 
 @Controller("homes")
 export class HomeController {
     private readonly logger = new Logger(HomeController.name);
 
     constructor(private readonly homeService: HomeService) {}
+
+    @Post(":id/users")
+    @HttpCode(201)
+    async addUserToHome(
+        @Param("id") homeId: string,
+        @Body() data: AddUserToHomeDto,
+    ): Promise<void> {
+        return this.homeService.addUserToHome(homeId, data.userId);
+    }
 
     @Post()
     @HttpCode(201)
@@ -27,28 +42,28 @@ export class HomeController {
 
     @Get(":id")
     @HttpCode(200)
-    async getHome(@Param("id") id: string): Promise<Home> {
-        return this.homeService.retrieve(id);
+    async getHome(@Param("id") homeId: string): Promise<Home> {
+        return this.homeService.retrieve(homeId);
     }
 
     @Get()
     @HttpCode(200)
-    async getHomes(): Promise<Home[]> {
-        return this.homeService.retrieveAll();
+    async getHomes(@Query() query: GetHomesDto): Promise<Home[]> {
+        return this.homeService.retrieveAll(query);
     }
 
     @Patch(":id")
     @HttpCode(200)
     async updateHome(
-        @Param("id") id: string,
+        @Param("id") homeId: string,
         @Body() data: UpdateHomeDto,
     ): Promise<Home> {
-        return this.homeService.update(id, data);
+        return this.homeService.update(homeId, data);
     }
 
     @Delete(":id")
     @HttpCode(200)
-    async deleteHome(@Param("id") id: string): Promise<Home> {
-        return this.homeService.delete(id);
+    async deleteHome(@Param("id") homeId: string): Promise<Home> {
+        return this.homeService.delete(homeId);
     }
 }
