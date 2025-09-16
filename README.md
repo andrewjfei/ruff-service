@@ -59,19 +59,6 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
 ## Resources
 
 Check out a few resources that may come in handy when working with NestJS:
@@ -165,3 +152,21 @@ pnpm prisma:generate -n <MIGRATION_NAME> && pnpm migrations:run
 ### 4. Testing Infrastructure
 
 Create a builder in `src/test/builders/` to facilitate model creation in your test suites, ensuring consistent and maintainable test data.
+
+# Deployment
+
+This service is deployed as a serverless function on Vercel, which requires specific configuration to ensure proper functionality.
+
+## Prerequisites
+
+A `vercel.json` configuration file is required to successfully deploy the service as a serverless function.
+
+## Build Process
+
+Since this service uses Prisma, the deployment process includes additional steps to ensure database compatibility:
+
+1. **Prisma Generation**: Generated files are created during the build process
+2. **Migration Execution**: Database migrations are applied before the application build
+3. **Build Script**: A `vercel-build` script in `package.json` orchestrates these steps
+
+The `vercel-build` script ensures all required Prisma steps are completed before the application is built and deployed.

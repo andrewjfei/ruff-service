@@ -8,7 +8,7 @@ generator client {
     provider = "prisma-client-js"
 
     // this is the current target for running prisma in docker container
-    binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+    binaryTargets = ["linux-musl-openssl-3.0.x", "debian-openssl-3.0.x", "rhel-openssl-3.0.x"]
     output        = "./generated/prisma"
 }
 
