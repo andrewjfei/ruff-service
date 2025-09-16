@@ -16,7 +16,7 @@ import { PrismaErrorCode } from "../constants";
 export class HomeService {
     private readonly logger = new Logger(HomeService.name);
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Create a new home.

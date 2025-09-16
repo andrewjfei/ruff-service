@@ -17,7 +17,7 @@ import { CreateHomeDto, UpdateHomeDto } from "./dto";
 export class HomeController {
     private readonly logger = new Logger(HomeController.name);
 
-    constructor(private readonly homeService: HomeService) { }
+    constructor(private readonly homeService: HomeService) {}
 
     @Post()
     @HttpCode(201)

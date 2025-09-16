@@ -7,7 +7,7 @@
     "license": "UNLICENSED",
     "scripts": {
         "build": "nest build",
-        "build:prod": "pnpm prisma:generate && pnpm migrations:deploy && pnpm build",
+        "vercel-build": "pnpm prisma:generate && pnpm migrations:deploy && pnpm build",
         "format": "prettier --write .",
         "start": "nest start --env-file .env",
         "start:dev": "nest start --watch --env-file .env",

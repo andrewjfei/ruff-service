@@ -21,7 +21,7 @@ import {
 export class PetService {
     private readonly logger = new Logger(PetService.name);
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Create a new pet.

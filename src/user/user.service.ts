@@ -16,7 +16,7 @@ import { CreateUserDto, UpdateUserDto } from "./dto";
 export class UserService {
     private readonly logger = new Logger(UserService.name);
 
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) {}
 
     /**
      * Create a new user.
