@@ -16,6 +16,12 @@ async function bootstrap() {
         }),
     });
 
+    app.enableCors({
+        origin: "*",
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    });
+
     app.useGlobalPipes(
         new ValidationPipe({
             // Transform the request body to the DTO class
@@ -30,7 +36,9 @@ async function bootstrap() {
     app.useGlobalInterceptors(new ExceptionInterceptor());
 
     const configService = app.get(ConfigService);
-    const appConfig: AppConfig = assertDefined(configService.get("app"));
+    const appConfig: AppConfig = assertDefined(
+        configService.get<AppConfig>("app"),
+    );
 
     const port = appConfig.port;
 
