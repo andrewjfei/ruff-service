@@ -32,3 +32,15 @@ export const CatBreed = {
     SPHYNX: "Sphynx",
     BENGAL: "Bengal",
 };
+
+export const PetLogType = {
+    WALK: "Walk",
+    FOOD: "Food",
+    TREAT: "Treat",
+    MEDICATION: "Medication",
+    PLAY: "Play",
+    TRAINING: "Training",
+    VET: "Vet",
+    GROOM: "Groom",
+    OTHER: "Other",
+};

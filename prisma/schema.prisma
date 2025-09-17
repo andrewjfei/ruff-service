@@ -22,6 +22,8 @@ model User {
     firstName  String     @db.VarChar(255)
     lastName   String     @db.VarChar(255)
     email      String     @unique @db.VarChar(255)
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @default(now()) @updatedAt
     ownedHomes Home[]
     homes      UserHome[]
 
@@ -39,25 +41,44 @@ model UserHome {
 }
 
 model Home {
-    id      String     @id @default(uuid())
-    name    String     @db.VarChar(255)
-    pets    Pet[]
-    owner   User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-    ownerId String
-    users   UserHome[]
+    id        String     @id @default(uuid())
+    name      String     @db.VarChar(255)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @default(now()) @updatedAt
+    owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    ownerId   String
+    pets      Pet[]
+    users     UserHome[]
 
     @@map("home")
 }
 
 model Pet {
-    id     String   @id @default(uuid())
-    name   String   @db.VarChar(255)
-    type   String   @db.VarChar(255)
-    gender String   @db.VarChar(255)
-    dob    DateTime
-    breed  String   @db.VarChar(255)
-    home   Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
-    homeId String
+    id        String   @id @default(uuid())
+    name      String   @db.VarChar(255)
+    type      String   @db.VarChar(255)
+    gender    String   @db.VarChar(255)
+    dob       DateTime
+    breed     String   @db.VarChar(255)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @default(now()) @updatedAt
+    home      Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+    homeId    String
+    logs      PetLog[]
 
     @@map("pet")
+}
+
+model PetLog {
+    id          String   @id @default(uuid())
+    type        String   @db.VarChar(255)
+    title       String   @db.VarChar(255)
+    description String?  @db.VarChar(255)
+    occuredAt   DateTime
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @default(now()) @updatedAt
+    pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+    petId       String
+
+    @@map("pet_log")
 }

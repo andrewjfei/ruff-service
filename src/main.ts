@@ -26,6 +26,8 @@ async function bootstrap() {
         new ValidationPipe({
             // Transform the request body to the DTO class
             transform: true,
+            // Remove any properties that are not in the DTO class
+            whitelist: true,
         }),
     );
 

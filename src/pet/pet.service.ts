@@ -5,14 +5,15 @@ import {
     Logger,
     NotFoundException,
 } from "@nestjs/common";
-import { Pet, Prisma } from "../../prisma/generated/prisma";
+import { Pet, PetLog, Prisma } from "../../prisma/generated/prisma";
 import { PrismaService } from "../prisma/prisma.service";
 import { assertDefined } from "../utils";
-import { CreatePetDto, GetPetsDto, UpdatePetDto } from "./dto";
+import { CreatePetDto, CreatePetLogDto, GetPetsDto, UpdatePetDto } from "./dto";
 import {
     CatBreed,
     DogBreed,
     PetGender,
+    PetLogType,
     PetType,
     PrismaErrorCode,
 } from "../constants";
@@ -147,5 +148,58 @@ export class PetService {
             default:
                 return Object.values(DogBreed);
         }
+    }
+
+    /**
+     * Retrieve all pet log types.
+     * @returns The retrieved pet log types.
+     */
+    retrievePetLogTypes(): string[] {
+        return Object.values(PetLogType);
+    }
+
+    /**
+     * Create a new pet log.
+     * @param id - The id of the pet to create the log for.
+     * @param data - The data to create the log with.
+     * @returns The created pet log.
+     */
+    async createPetLog(id: string, data: CreatePetLogDto): Promise<PetLog> {
+        try {
+            return await this.prisma.petLog.create({
+                data: { ...data, petId: id },
+            });
+        } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (
+                    error.code ===
+                    PrismaErrorCode.FOREIGN_KEY_CONSTRAINT_VIOLATION
+                ) {
+                    throw new NotFoundException(
+                        `Pet with id ${id} does not exist`,
+                    );
+                }
+            }
+
+            if (error instanceof Error) {
+                throw new InternalServerErrorException(
+                    `Failed to create pet: ${error.message}`,
+                );
+            }
+
+            throw new InternalServerErrorException(error);
+        }
+    }
+
+    /**
+     * Retrieve all pet logs for a pet.
+     * @param id - The id of the pet to retrieve logs for.
+     * @returns The retrieved pet logs.
+     */
+    async retrievePetLogs(id: string): Promise<PetLog[]> {
+        return this.prisma.petLog.findMany({
+            where: { petId: id },
+            orderBy: { occuredAt: "desc" },
+        });
     }
 }

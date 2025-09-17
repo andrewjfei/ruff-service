@@ -6,8 +6,8 @@ import { CreatePetDto } from "../../pet/dto";
 import { CatBreed, DogBreed, PetGender, PetType } from "../../constants";
 
 /**
- * Home builder class for integration tests.
- * Set up once in beforeAll, then use createHome method in tests.
+ * Pet builder class for integration tests.
+ * Set up once in beforeAll, then use createPet method in tests.
  */
 export class PetBuilder extends BaseBuilder {
     private get petService(): PetService {
@@ -15,9 +15,9 @@ export class PetBuilder extends BaseBuilder {
     }
 
     /**
-     * Creates a home in the database allowing partial overrides.
-     * @param overrides - Partial home data to override defaults.
-     * @returns The created home.
+     * Creates a pet in the database allowing partial overrides.
+     * @param overrides - Partial pet data to override defaults.
+     * @returns The created pet.
      */
     async createPet(
         overrides: Partial<Omit<CreatePetDto, "homeId">> & {

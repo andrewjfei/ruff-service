@@ -12,7 +12,14 @@ import {
 } from "@nestjs/common";
 import { PetService } from "./pet.service";
 import { Pet } from "../types";
-import { CreatePetDto, GetPetBreedsDto, GetPetsDto, UpdatePetDto } from "./dto";
+import {
+    CreatePetDto,
+    CreatePetLogDto,
+    GetPetBreedsDto,
+    GetPetsDto,
+    UpdatePetDto,
+} from "./dto";
+import { PetLog } from "prisma/generated/prisma/client";
 
 @Controller("pets")
 export class PetController {
@@ -36,6 +43,27 @@ export class PetController {
     @HttpCode(200)
     getPetBreeds(@Query() data: GetPetBreedsDto): string[] {
         return this.petService.retrievePetBreeds(data.type);
+    }
+
+    @Get("logs/types")
+    @HttpCode(200)
+    getPetLogTypes(): string[] {
+        return this.petService.retrievePetLogTypes();
+    }
+
+    @Post(":id/logs")
+    @HttpCode(201)
+    createPetLog(
+        @Param("id") id: string,
+        @Body() data: CreatePetLogDto,
+    ): Promise<PetLog> {
+        return this.petService.createPetLog(id, data);
+    }
+
+    @Get(":id/logs")
+    @HttpCode(200)
+    getPetLogs(@Param("id") id: string): Promise<PetLog[]> {
+        return this.petService.retrievePetLogs(id);
     }
 
     @Post()

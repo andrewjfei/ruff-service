@@ -10,13 +10,22 @@ import { Server } from "http";
 import { HomeBuilder, PetBuilder, UserBuilder } from "../../test/builders";
 import { UserModule } from "../../user/user.module";
 import { HomeModule } from "../../home/home.module";
-import { CatBreed, DogBreed, PetGender, PetType } from "../../constants";
+import {
+    CatBreed,
+    DogBreed,
+    PetGender,
+    PetLogType,
+    PetType,
+} from "../../constants";
 import { HomeService } from "../../home/home.service";
+import { PetLog } from "../../../prisma/generated/prisma";
+import { PetService } from "../pet.service";
 
 describe("Pet Endpoint Integration Tests", () => {
     let app: INestApplication;
     let prismaService: PrismaService;
     let homeService: HomeService;
+    let petService: PetService;
     let userBuilder: UserBuilder;
     let homeBuilder: HomeBuilder;
     let petBuilder: PetBuilder;
@@ -35,6 +44,7 @@ describe("Pet Endpoint Integration Tests", () => {
 
         prismaService = module.get<PrismaService>(PrismaService);
         homeService = module.get<HomeService>(HomeService);
+        petService = module.get<PetService>(PetService);
 
         // Set up builders
         userBuilder = new UserBuilder(app);
@@ -111,6 +121,115 @@ describe("Pet Endpoint Integration Tests", () => {
             expect(responseData).toEqual(
                 expect.arrayContaining(Object.values(CatBreed)),
             );
+        });
+    });
+
+    describe("GET /pets/logs/types", () => {
+        it("should retrieve all pet log types", async () => {
+            const response: Response = await request(getHttpServer())
+                .get("/pets/logs/types")
+                .expect(200);
+
+            const responseData = response.body as string[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(Object.values(PetLogType).length);
+            expect(responseData).toEqual(
+                expect.arrayContaining(Object.values(PetLogType)),
+            );
+        });
+    });
+
+    describe("POST /pets/:id/logs", () => {
+        it("should create a pet log successfully", async () => {
+            const user: User = await userBuilder.createUser();
+            const home: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+            const pet: Pet = await petBuilder.createPet({ homeId: home.id });
+
+            const petLogData = {
+                type: PetLogType.WALK,
+                title: "Morning Walk",
+                description: "Walk around Victoria Park",
+                occuredAt: new Date().toISOString(),
+            };
+
+            const response: Response = await request(getHttpServer())
+                .post(`/pets/${pet.id}/logs`)
+                .send(petLogData)
+                .expect(201);
+
+            const responseData = response.body as PetLog;
+
+            expect(responseData).toBeDefined();
+            expect(responseData.id).toBeDefined();
+            expect(responseData.type).toBe(petLogData.type);
+            expect(responseData.title).toBe(petLogData.title);
+            expect(responseData.description).toBe(petLogData.description);
+            expect(responseData.occuredAt).toBe(petLogData.occuredAt);
+            expect(responseData.petId).toBe(pet.id);
+        });
+
+        it("should return 404 for non-existent pet", async () => {
+            const nonExistentId = "non-existent-id";
+
+            const petLogData = {
+                type: PetLogType.WALK,
+                title: "Morning Walk",
+                description: "Walk around Victoria Park",
+                occuredAt: new Date().toISOString(),
+            };
+
+            const response: Response = await request(getHttpServer())
+                .post(`/pets/${nonExistentId}/logs`)
+                .send(petLogData)
+                .expect(404);
+
+            const responseData = response.body as HttpException;
+
+            expect(responseData.message).toContain(
+                `Pet with id ${nonExistentId} does not exist`,
+            );
+        });
+    });
+
+    describe("GET /pets/:id/logs", () => {
+        it("should retrieve all pet logs for a pet", async () => {
+            const date = new Date();
+            const user: User = await userBuilder.createUser();
+            const home: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+            const pet: Pet = await petBuilder.createPet({ homeId: home.id });
+
+            const petLogWalk: PetLog = await petService.createPetLog(pet.id, {
+                type: PetLogType.WALK,
+                title: "Morning Walk",
+                description: "Walk around Victoria Park",
+                occuredAt: date,
+            });
+
+            const petLogFood: PetLog = await petService.createPetLog(pet.id, {
+                type: PetLogType.FOOD,
+                title: "Breakfast",
+                occuredAt: new Date(date.setMinutes(date.getMinutes() - 30)),
+            });
+
+            const response: Response = await request(getHttpServer())
+                .get(`/pets/${pet.id}/logs`)
+                .expect(200);
+
+            const responseData = response.body as PetLog[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(2);
+
+            // Validate that the order of the logs is correct, should be in descending order of when the log occured
+            expect(responseData.map((petLog: PetLog) => petLog.id)).toEqual([
+                petLogWalk.id,
+                petLogFood.id,
+            ]);
         });
     });
 
