@@ -152,7 +152,7 @@ describe("Pet Endpoint Integration Tests", () => {
                 type: PetLogType.WALK,
                 title: "Morning Walk",
                 description: "Walk around Victoria Park",
-                occuredAt: new Date().toISOString(),
+                occurredAt: new Date().toISOString(),
             };
 
             const response: Response = await request(getHttpServer())
@@ -167,7 +167,7 @@ describe("Pet Endpoint Integration Tests", () => {
             expect(responseData.type).toBe(petLogData.type);
             expect(responseData.title).toBe(petLogData.title);
             expect(responseData.description).toBe(petLogData.description);
-            expect(responseData.occuredAt).toBe(petLogData.occuredAt);
+            expect(responseData.occurredAt).toBe(petLogData.occurredAt);
             expect(responseData.petId).toBe(pet.id);
         });
 
@@ -178,7 +178,7 @@ describe("Pet Endpoint Integration Tests", () => {
                 type: PetLogType.WALK,
                 title: "Morning Walk",
                 description: "Walk around Victoria Park",
-                occuredAt: new Date().toISOString(),
+                occurredAt: new Date().toISOString(),
             };
 
             const response: Response = await request(getHttpServer())
@@ -207,13 +207,13 @@ describe("Pet Endpoint Integration Tests", () => {
                 type: PetLogType.WALK,
                 title: "Morning Walk",
                 description: "Walk around Victoria Park",
-                occuredAt: date,
+                occurredAt: date,
             });
 
             const petLogFood: PetLog = await petService.createPetLog(pet.id, {
                 type: PetLogType.FOOD,
                 title: "Breakfast",
-                occuredAt: new Date(date.setMinutes(date.getMinutes() - 30)),
+                occurredAt: new Date(date.setMinutes(date.getMinutes() - 30)),
             });
 
             const response: Response = await request(getHttpServer())
@@ -225,7 +225,7 @@ describe("Pet Endpoint Integration Tests", () => {
             expect(responseData).toBeDefined();
             expect(responseData.length).toBe(2);
 
-            // Validate that the order of the logs is correct, should be in descending order of when the log occured
+            // Validate that the order of the logs is correct, should be in descending order of when the log occurred
             expect(responseData.map((petLog: PetLog) => petLog.id)).toEqual([
                 petLogWalk.id,
                 petLogFood.id,

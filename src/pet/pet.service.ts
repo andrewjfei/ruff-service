@@ -199,7 +199,7 @@ export class PetService {
     async retrievePetLogs(id: string): Promise<PetLog[]> {
         return this.prisma.petLog.findMany({
             where: { petId: id },
-            orderBy: { occuredAt: "desc" },
+            orderBy: { occurredAt: "desc" },
         });
     }
 }

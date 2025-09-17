@@ -1,6 +1,22 @@
 import { Home, Pet, PrismaClient, User } from "../../prisma/generated/prisma";
 import { faker } from "@faker-js/faker";
-import { DogBreed, PetGender, PetType } from "../constants";
+import { DogBreed, PetGender, PetLogType, PetType } from "../constants";
+
+const petLogTitles = [
+    "Morning Walk",
+    "Breakfast",
+    "Lunch",
+    "Dinner",
+    "Evening Walk",
+    "Grooming",
+    "Vaccination",
+    "Medication",
+    "Training",
+    "Greenie",
+    "Chicken Stick",
+    "Dog Park",
+    "Other",
+];
 
 const prisma = new PrismaClient();
 
@@ -71,15 +87,34 @@ const createPets = async (homes: Home[]): Promise<Pet[]> => {
             const dob = faker.date.past();
             const breed = faker.helpers.arrayElement(Object.values(DogBreed));
 
-            return prisma.pet.create({
-                data: {
-                    name,
-                    type,
-                    gender,
-                    dob,
-                    breed,
-                    homeId: home.id,
-                },
+            return prisma.$transaction(async (tx) => {
+                const pet = await tx.pet.create({
+                    data: {
+                        name,
+                        type,
+                        gender,
+                        dob,
+                        breed,
+                        homeId: home.id,
+                    },
+                });
+
+                await Promise.all(
+                    Array.from({ length: 5 }).map(async () => {
+                        await tx.petLog.create({
+                            data: {
+                                petId: pet.id,
+                                type: faker.helpers.arrayElement(
+                                    Object.values(PetLogType),
+                                ),
+                                title: faker.helpers.arrayElement(petLogTitles),
+                                occurredAt: faker.date.past(),
+                            },
+                        });
+                    }),
+                );
+
+                return pet;
             });
         }),
     );

@@ -27,5 +27,5 @@ export class CreatePetLogDto {
     @IsDate()
     @IsNotEmpty()
     @Type(() => Date)
-    occuredAt: Date;
+    occurredAt: Date;
 }

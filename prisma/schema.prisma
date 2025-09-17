@@ -74,7 +74,7 @@ model PetLog {
     type        String   @db.VarChar(255)
     title       String   @db.VarChar(255)
     description String?  @db.VarChar(255)
-    occuredAt   DateTime
+    occurredAt  DateTime
     createdAt   DateTime @default(now())
     updatedAt   DateTime @default(now()) @updatedAt
     pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
