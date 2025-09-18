@@ -8,7 +8,13 @@ import {
 import { Pet, PetLog, Prisma } from "../../prisma/generated/prisma";
 import { PrismaService } from "../prisma/prisma.service";
 import { assertDefined } from "../utils";
-import { CreatePetDto, CreatePetLogDto, GetPetsDto, UpdatePetDto } from "./dto";
+import {
+    CreatePetDto,
+    CreatePetLogDto,
+    GetAllPetLogsDto,
+    GetPetsDto,
+    UpdatePetDto,
+} from "./dto";
 import {
     CatBreed,
     DogBreed,
@@ -193,13 +199,32 @@ export class PetService {
 
     /**
      * Retrieve all pet logs for a pet.
-     * @param id - The id of the pet to retrieve logs for.
+     * @param id - The id of the pet to retrieve pet logs for.
      * @returns The retrieved pet logs.
      */
     async retrievePetLogs(id: string): Promise<PetLog[]> {
         return this.prisma.petLog.findMany({
             where: { petId: id },
             orderBy: { occurredAt: "desc" },
+        });
+    }
+
+    /**
+     * Retrieve all pet logs for a user.
+     * @param data - The data to filter the pet logs by.
+     * @returns The retrieved pet logs.
+     */
+    async retrieveAllPetLogs(data: GetAllPetLogsDto): Promise<PetLog[]> {
+        const where = data.userId
+            ? { pet: { home: { users: { some: { userId: data.userId } } } } }
+            : {};
+
+        console.log(data.limit);
+
+        return this.prisma.petLog.findMany({
+            where,
+            orderBy: { occurredAt: "desc" },
+            take: data.limit,
         });
     }
 }

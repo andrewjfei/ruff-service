@@ -233,6 +233,107 @@ describe("Pet Endpoint Integration Tests", () => {
         });
     });
 
+    describe("GET /pets/logs", () => {
+        it("should retrieve all pet logs for a user", async () => {
+            const date = new Date();
+
+            const user: User = await userBuilder.createUser();
+            const otherUser: User = await userBuilder.createUser();
+
+            const home: Home = await homeBuilder.createHome({
+                ownerId: user.id,
+            });
+            const otherHome: Home = await homeBuilder.createHome({
+                ownerId: otherUser.id,
+            });
+
+            const pet: Pet = await petBuilder.createPet({ homeId: home.id });
+            const otherPet: Pet = await petBuilder.createPet({
+                homeId: otherHome.id,
+            });
+
+            const petLogWalk: PetLog = await petService.createPetLog(pet.id, {
+                type: PetLogType.WALK,
+                title: "Morning Walk",
+                description: "Walk around Victoria Park",
+                occurredAt: date,
+            });
+            const petLogFood: PetLog = await petService.createPetLog(pet.id, {
+                type: PetLogType.FOOD,
+                title: "Breakfast",
+                occurredAt: new Date(date.setMinutes(date.getMinutes() - 30)),
+            });
+            const petLogMedication: PetLog = await petService.createPetLog(
+                pet.id,
+                {
+                    type: PetLogType.MEDICATION,
+                    title: "Medication",
+                    description: "Give medication to pet",
+                    occurredAt: new Date(
+                        date.setMinutes(date.getMinutes() - 60),
+                    ),
+                },
+            );
+            const petLogs: PetLog[] = [
+                petLogWalk,
+                petLogFood,
+                petLogMedication,
+            ];
+
+            const otherPetLogWalk: PetLog = await petService.createPetLog(
+                otherPet.id,
+                {
+                    type: PetLogType.WALK,
+                    title: "Morning Walk",
+                    description: "Walk around Victoria Park",
+                    occurredAt: date,
+                },
+            );
+            const otherPetLogFood: PetLog = await petService.createPetLog(
+                otherPet.id,
+                {
+                    type: PetLogType.FOOD,
+                    title: "Breakfast",
+                    occurredAt: new Date(
+                        date.setMinutes(date.getMinutes() - 30),
+                    ),
+                },
+            );
+            const otherPetLogs: PetLog[] = [otherPetLogWalk, otherPetLogFood];
+            const allPetLogs: PetLog[] = [...petLogs, ...otherPetLogs];
+
+            homeService.addUserToHome(otherHome.id, user.id);
+
+            const response: Response = await request(getHttpServer())
+                .get("/pets/logs")
+                .query({ userId: user.id })
+                .expect(200);
+
+            const responseData = response.body as PetLog[];
+
+            expect(responseData).toBeDefined();
+            expect(responseData.length).toBe(allPetLogs.length);
+            expect(responseData.map((petLog: PetLog) => petLog.id)).toEqual(
+                expect.arrayContaining(allPetLogs.map((petLog) => petLog.id)),
+            );
+
+            const otherResponse: Response = await request(getHttpServer())
+                .get("/pets/logs")
+                .query({ userId: otherUser.id })
+                .expect(200);
+
+            const otherResponseData = otherResponse.body as PetLog[];
+
+            expect(otherResponseData).toBeDefined();
+            expect(otherResponseData.length).toBe(otherPetLogs.length);
+            expect(
+                otherResponseData.map((petLog: PetLog) => petLog.id),
+            ).toEqual(
+                expect.arrayContaining(otherPetLogs.map((petLog) => petLog.id)),
+            );
+        });
+    });
+
     describe("POST /pets", () => {
         it("should create a pet successfully", async () => {
             const user: User = await userBuilder.createUser();

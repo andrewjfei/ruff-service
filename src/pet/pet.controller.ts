@@ -15,6 +15,7 @@ import { Pet } from "../types";
 import {
     CreatePetDto,
     CreatePetLogDto,
+    GetAllPetLogsDto,
     GetPetBreedsDto,
     GetPetsDto,
     UpdatePetDto,
@@ -64,6 +65,12 @@ export class PetController {
     @HttpCode(200)
     getPetLogs(@Param("id") id: string): Promise<PetLog[]> {
         return this.petService.retrievePetLogs(id);
+    }
+
+    @Get("logs")
+    @HttpCode(200)
+    getAllPetLogs(@Query() query: GetAllPetLogsDto): Promise<PetLog[]> {
+        return this.petService.retrieveAllPetLogs(query);
     }
 
     @Post()
